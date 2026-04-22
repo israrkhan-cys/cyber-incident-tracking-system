@@ -1,0 +1,378 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+/* ── Variables ── */
+:root {
+    --navy:        #0a1628;
+    --navy-mid:    #112240;
+    --navy-light:  #1d3461;
+    --accent:      #4a90d9;
+    --accent-bright: #60a5fa;
+    --white:       #f8faff;
+    --text-muted:  #8899aa;
+    --danger:      #e74c3c;
+    --success:     #2ecc71;
+    --warning:     #f39c12;
+    --border:      rgba(74, 144, 217, 0.15);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* ── Navbar ── */
+.navbar {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.navbar-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.navbar-brand span {
+    color: var(--accent-bright);
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    list-style: none;
+}
+
+.navbar-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.navbar-links a:hover {
+    color: var(--white);
+    background: var(--border);
+}
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.role-badge {
+    background: var(--navy-light);
+    color: var(--accent-bright);
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--border);
+}
+
+/* ── Main Layout ── */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+}
+
+/* ── Page Header ── */
+.page-header {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.page-title span {
+    color: var(--accent-bright);
+}
+
+/* ── Cards ── */
+.card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+}
+
+.card:hover { border-color: rgba(74, 144, 217, 0.35); }
+
+/* ── Buttons ── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--white);
+}
+.btn-primary:hover { background: var(--accent-bright); transform: translateY(-1px); }
+
+.btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+}
+.btn-danger:hover { background: var(--danger); color: white; }
+
+.btn-outline {
+    background: transparent;
+    color: var(--accent-bright);
+    border: 1px solid var(--border);
+}
+.btn-outline:hover { border-color: var(--accent-bright); }
+
+/* ── Forms ── */
+.form-card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.form-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    text-align: center;
+}
+
+.form-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--accent);
+}
+
+.form-group select option { background: var(--navy-mid); }
+
+/* ── Table ── */
+.table-wrapper {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: var(--navy-light);
+}
+
+thead th {
+    padding: 1rem 1.2rem;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent-bright);
+}
+
+tbody tr {
+    border-top: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+tbody tr:hover { background: rgba(74, 144, 217, 0.05); }
+
+tbody td {
+    padding: 1rem 1.2rem;
+    font-size: 0.9rem;
+    color: var(--white);
+}
+
+/* ── Status + Severity Badges ── */
+.badge {
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.badge-open        { background: rgba(231,76,60,0.15);  color: #e74c3c; }
+.badge-investigating{ background: rgba(243,156,18,0.15); color: #f39c12; }
+.badge-resolved    { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.badge-closed      { background: rgba(136,153,170,0.15);color: #8899aa; }
+
+.badge-low         { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.badge-medium      { background: rgba(243,156,18,0.15); color: #f39c12; }
+.badge-high        { background: rgba(231,76,60,0.15);  color: #e74c3c; }
+.badge-critical    { background: rgba(155,89,182,0.15); color: #9b59b6; }
+
+/* ── Flash Messages ── */
+.flash-messages { margin-bottom: 1.5rem; }
+
+.flash {
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    border-left: 3px solid;
+}
+
+.flash-success { background: rgba(46,204,113,0.1);  border-color: #2ecc71; color: #2ecc71; }
+.flash-danger  { background: rgba(231,76,60,0.1);   border-color: #e74c3c; color: #e74c3c; }
+.flash-info    { background: rgba(74,144,217,0.1);  border-color: #4a90d9; color: #4a90d9; }
+
+/* ── Auth page centering ── */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--accent-bright);
+    letter-spacing: 1px;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.form-footer a { color: var(--accent-bright); text-decoration: none; }
+.form-footer a:hover { text-decoration: underline; }
+
+/* ── Divider ── */
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.5rem 0;
+}
+
+/* ── Stats Grid (Dashboard) ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent-bright);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.3rem;
+}

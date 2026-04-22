@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CITS{% endblock %} | Cyber Incident Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<nav class="navbar">
+    <a href="{{ url_for('index') }}" class="navbar-brand">
+        🛡️ CI<span>TS</span>
+    </a>
+
+    <ul class="navbar-links">
+        <li><a href="{{ url_for('index') }}">Dashboard</a></li>
+        <li><a href="#">Incidents</a></li>
+        {% if current_user.role == 'admin' %}
+        <li><a href="#">Admin</a></li>
+        {% endif %}
+    </ul>
+
+    <div class="navbar-user">
+        <span>{{ current_user.username }}</span>
+        <span class="role-badge">{{ current_user.role }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Logout</a>
+    </div>
+</nav>
+{% endif %}
+
+<div class="{% if current_user.is_authenticated %}main-content{% else %}{% endif %}">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>
