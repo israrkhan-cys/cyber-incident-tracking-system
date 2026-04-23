@@ -31,4 +31,4 @@ mysql -u root -p < db/schema.sql
 
 ### 6. Run the app
 python app.py
-# Visit http://127.0.0.1:5000
+Visit http://127.0.0.1:5000
