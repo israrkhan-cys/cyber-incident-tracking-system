@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">Incident <span>Dashboard</span></h1>
-    <a href="#" class="btn btn-primary">+ Report Incident</a>
+    <a href="{{ url_for('new_incident') }}" class="btn btn-primary">+ Report Incident</a>
 </div>
 
 <div class="table-wrapper">
@@ -27,7 +27,7 @@
                 <td><span class="badge badge-{{ incident.severity }}">{{ incident.severity }}</span></td>
                 <td><span class="badge badge-{{ incident.status }}">{{ incident.status }}</span></td>
                 <td>{{ incident.reported_at.strftime('%b %d, %Y') }}</td>
-                <td><a href="#" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">View</a></td>
+                <td><a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">View</a></td>
             </tr>
             {% endfor %}
         </tbody>

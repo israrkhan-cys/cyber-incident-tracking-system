@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Incident #{{ incident.incident_id }}{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <a href="{{ url_for('index') }}" style="color: var(--text-muted); font-size:0.85rem; text-decoration:none;">
+            ← Back to Dashboard
+        </a>
+        <h1 class="page-title" style="margin-top:0.4rem;">
+            Incident <span>#{{ incident.incident_id }}</span>
+        </h1>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+        <span class="badge badge-{{ incident.severity }}" style="font-size:0.85rem; padding:0.4rem 1rem;">
+            {{ incident.severity }}
+        </span>
+        <span class="badge badge-{{ incident.status }}" style="font-size:0.85rem; padding:0.4rem 1rem;">
+            {{ incident.status }}
+        </span>
+    </div>
+</div>
+
+<!-- Top grid: details + assets -->
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+
+    <!-- Incident Details -->
+    <div class="card">
+        <h3 style="font-family:'Syne',sans-serif; font-size:1.1rem; margin-bottom:1.2rem; color:var(--accent-bright);">
+            Details
+        </h3>
+
+        <h2 style="font-size:1.25rem; font-weight:600; margin-bottom:0.8rem;">
+            {{ incident.title }}
+        </h2>
+
+        <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.7; margin-bottom:1.5rem;">
+            {{ incident.description or 'No description provided.' }}
+        </p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">Category</div>
+                <div style="font-size:0.92rem;">{{ incident.category_name or '—' }}</div>
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">Reported By</div>
+                <div style="font-size:0.92rem;">{{ incident.reporter_name or '—' }}</div>
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">Assigned To</div>
+                <div style="font-size:0.92rem;">{{ incident.assignee_name or '—' }}</div>
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">Reported At</div>
+                <div style="font-size:0.92rem;">{{ incident.reported_at.strftime('%b %d, %Y – %H:%M') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assets -->
+    <div class="card">
+        <h3 style="font-family:'Syne',sans-serif; font-size:1.1rem; margin-bottom:1.2rem; color:var(--accent-bright);">
+            Affected Assets
+        </h3>
+
+        {% if assets %}
+            {% for asset in assets %}
+            <div style="padding:0.75rem; background:var(--navy); border-radius:8px; margin-bottom:0.75rem; border:1px solid var(--border);">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.2rem;">
+                    {{ asset.asset_type or 'Unknown' }}
+                </div>
+                <div style="font-size:0.9rem; font-family:monospace; color:var(--accent-bright);">
+                    {{ asset.identifier }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted); font-size:0.88rem;">No assets linked.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Comments -->
+<div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="font-family:'Syne',sans-serif; font-size:1.1rem; margin-bottom:1.5rem; color:var(--accent-bright);">
+        Comments
+    </h3>
+
+    {% if comments %}
+        {% for comment in comments %}
+        <div style="display:flex; gap:1rem; margin-bottom:1.2rem;">
+            <div style="width:36px; height:36px; border-radius:50%; background:var(--navy-light);
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:0.8rem; font-weight:700; color:var(--accent-bright); flex-shrink:0;">
+                {{ comment.username[0].upper() }}
+            </div>
+            <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.3rem;">
+                    <span style="font-weight:600; font-size:0.9rem;">{{ comment.username }}</span>
+                    <span style="font-size:0.78rem; color:var(--text-muted);">
+                        {{ comment.posted_at.strftime('%b %d, %Y – %H:%M') }}
+                    </span>
+                </div>
+                <p style="font-size:0.9rem; color:#ccd6f6; line-height:1.6;">{{ comment.content }}</p>
+            </div>
+        </div>
+        {% if not loop.last %}
+        <div class="divider"></div>
+        {% endif %}
+        {% endfor %}
+    {% else %}
+        <p style="color:var(--text-muted); font-size:0.88rem;">No comments yet.</p>
+    {% endif %}
+</div>
+
+<!-- Audit Log -->
+<div class="card">
+    <h3 style="font-family:'Syne',sans-serif; font-size:1.1rem; margin-bottom:1.2rem; color:var(--accent-bright);">
+        Audit Log
+    </h3>
+
+    {% if logs %}
+    <div style="position:relative; padding-left:1.5rem;">
+        {% for log in logs %}
+        <div style="position:relative; padding-bottom:1.2rem;">
+            <!-- Timeline dot -->
+            <div style="position:absolute; left:-1.5rem; top:0.3rem;
+                        width:10px; height:10px; border-radius:50%;
+                        background:var(--accent); border:2px solid var(--navy-mid);">
+            </div>
+            <!-- Timeline line (not on last item) -->
+            {% if not loop.last %}
+            <div style="position:absolute; left:-1.46rem; top:0.9rem;
+                        width:2px; height:100%; background:var(--border);">
+            </div>
+            {% endif %}
+
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                <span style="font-size:0.88rem;">{{ log.action }}</span>
+                <span style="font-size:0.78rem; color:var(--text-muted);">by {{ log.username }}</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">
+                    {{ log.logged_at.strftime('%b %d, %Y – %H:%M') }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p style="color:var(--text-muted); font-size:0.88rem;">No log entries.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
