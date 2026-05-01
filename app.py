@@ -28,17 +28,15 @@ def load_user(user_id):
         return User(user['user_id'], user['username'], user['role'])
     return None
 
-# Register blueprints
 from routes.auth import auth
 app.register_blueprint(auth)
 
-# view incidents
+# ── View incident detail ─────────────────────────────────
 @app.route('/incident/<int:incident_id>')
 @login_required
 def incident_detail(incident_id):
     cur = mysql.connection.cursor()
 
-    # Main incident row
     cur.execute("""
         SELECT i.*, 
                c.name AS category_name,
@@ -56,11 +54,9 @@ def incident_detail(incident_id):
         flash('Incident not found.', 'danger')
         return redirect(url_for('index'))
 
-    # Assets
     cur.execute("SELECT * FROM assets WHERE incident_id = %s", (incident_id,))
     assets = cur.fetchall()
 
-    # Comments with usernames
     cur.execute("""
         SELECT cm.*, u.username
         FROM comments cm
@@ -70,7 +66,6 @@ def incident_detail(incident_id):
     """, (incident_id,))
     comments = cur.fetchall()
 
-    # Audit log with usernames
     cur.execute("""
         SELECT il.*, u.username
         FROM incident_logs il
@@ -87,10 +82,14 @@ def incident_detail(incident_id):
                            comments=comments,
                            logs=logs)
 
-# + Report incident
+# ── Report new incident ──────────────────────────────────
 @app.route('/incident/new', methods=['GET', 'POST'])
 @login_required
 def new_incident():
+    if current_user.role not in ('admin', 'analyst'):
+        flash('You do not have permission to report incidents.', 'danger')
+        return redirect(url_for('index'))
+
     cur = mysql.connection.cursor()
 
     if request.method == 'POST':
@@ -106,10 +105,8 @@ def new_incident():
         """, (title, description, severity, category_id, current_user.id, assigned_to))
         mysql.connection.commit()
 
-        # Get the new incident's id
         new_id = cur.lastrowid
 
-        # Write to audit log
         cur.execute("""
             INSERT INTO incident_logs (incident_id, user_id, action)
             VALUES (%s, %s, %s)
@@ -120,7 +117,6 @@ def new_incident():
         flash('Incident reported successfully.', 'success')
         return redirect(url_for('incident_detail', incident_id=new_id))
 
-    # GET — fetch categories and users for the dropdowns
     cur.execute("SELECT * FROM categories")
     categories = cur.fetchall()
 
@@ -130,8 +126,74 @@ def new_incident():
     cur.close()
     return render_template('new_incident.html', categories=categories, users=users)
 
+# ── Edit incident ────────────────────────────────────────
+@app.route('/incident/<int:incident_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_incident(incident_id):
+    if current_user.role not in ('admin', 'analyst'):
+        flash('You do not have permission to edit incidents.', 'danger')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    cur = mysql.connection.cursor()
+
+    if request.method == 'POST':
+        title       = request.form['title']
+        description = request.form['description']
+        severity    = request.form['severity']
+        status      = request.form['status']
+        category_id = request.form['category_id'] or None
+        assigned_to = request.form['assigned_to'] or None
+
+        cur.execute("SELECT * FROM incidents WHERE incident_id = %s", (incident_id,))
+        old = cur.fetchone()
+
+        cur.execute("""
+            UPDATE incidents
+            SET title=%s, description=%s, severity=%s, status=%s,
+                category_id=%s, assigned_to=%s
+            WHERE incident_id=%s
+        """, (title, description, severity, status, category_id, assigned_to, incident_id))
+        mysql.connection.commit()
+
+        changes = []
+        if old['title']       != title:       changes.append('Title updated')
+        if old['description'] != description: changes.append('Description updated')
+        if old['severity']    != severity:    changes.append(f'Severity changed to {severity}')
+        if old['status']      != status:      changes.append(f'Status changed to {status}')
+        if str(old['assigned_to'] or '') != str(assigned_to or ''):
+            changes.append('Assignee updated')
+
+        for change in changes:
+            cur.execute("""
+                INSERT INTO incident_logs (incident_id, user_id, action)
+                VALUES (%s, %s, %s)
+            """, (incident_id, current_user.id, change))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Incident updated successfully.', 'success')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    cur.execute("SELECT * FROM incidents WHERE incident_id = %s", (incident_id,))
+    incident = cur.fetchone()
+
+    if not incident:
+        flash('Incident not found.', 'danger')
+        cur.close()
+        return redirect(url_for('index'))
+
+    cur.execute("SELECT * FROM categories")
+    categories = cur.fetchall()
+
+    cur.execute("SELECT user_id, username, role FROM users ORDER BY username")
+    users = cur.fetchall()
+
+    cur.close()
+    return render_template('edit_incident.html', incident=incident, categories=categories, users=users)
+
+# ── Dashboard ────────────────────────────────────────────
 @app.route('/')
-@login_required                  # ← protect home, must be logged in
+@login_required
 def index():
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM incidents")

@@ -4,7 +4,9 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">Incident <span>Dashboard</span></h1>
+    {% if current_user.role in ('admin', 'analyst') %}
     <a href="{{ url_for('new_incident') }}" class="btn btn-primary">+ Report Incident</a>
+    {% endif %}
 </div>
 
 <div class="table-wrapper">
