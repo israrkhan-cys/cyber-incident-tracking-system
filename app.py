@@ -82,6 +82,68 @@ def incident_detail(incident_id):
                            comments=comments,
                            logs=logs)
 
+# assets
+@app.route('/incident/<int:incident_id>/asset/add', methods=['POST'])
+@login_required
+def add_asset(incident_id):
+    if current_user.role not in ('admin', 'analyst'):
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    asset_type = request.form.get('asset_type', '').strip()
+    identifier = request.form.get('identifier', '').strip()
+
+    if not identifier:
+        flash('Asset identifier is required.', 'danger')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        INSERT INTO assets (incident_id, asset_type, identifier)
+        VALUES (%s, %s, %s)
+    """, (incident_id, asset_type, identifier))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Asset added.', 'success')
+    return redirect(url_for('incident_detail', incident_id=incident_id))
+
+
+@app.route('/incident/<int:incident_id>/asset/<int:asset_id>/delete', methods=['POST'])
+@login_required
+def delete_asset(incident_id, asset_id):
+    if current_user.role not in ('admin', 'analyst'):
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM assets WHERE asset_id = %s AND incident_id = %s", (asset_id, incident_id))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Asset removed.', 'success')
+    return redirect(url_for('incident_detail', incident_id=incident_id))
+
+# comments submission form
+@app.route('/incident/<int:incident_id>/comment', methods=['POST'])
+@login_required
+def add_comment(incident_id):
+    content = request.form.get('content', '').strip()
+    if not content:
+        flash('Comment cannot be empty.', 'danger')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        INSERT INTO comments (incident_id, user_id, content)
+        VALUES (%s, %s, %s)
+    """, (incident_id, current_user.id, content))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Comment added.', 'success')
+    return redirect(url_for('incident_detail', incident_id=incident_id))
+
 # ── Report new incident ──────────────────────────────────
 @app.route('/incident/new', methods=['GET', 'POST'])
 @login_required
@@ -191,15 +253,117 @@ def edit_incident(incident_id):
     cur.close()
     return render_template('edit_incident.html', incident=incident, categories=categories, users=users)
 
+# users
+
+@app.route('/admin/users')
+@login_required
+def admin_users():
+    if current_user.role != 'admin':
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('index'))
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users ORDER BY created_at DESC")
+    users = cur.fetchall()
+    cur.close()
+    return render_template('admin/users.html', users=users)
+
+
+@app.route('/admin/users/<int:user_id>/update', methods=['POST'])
+@login_required
+def admin_update_user(user_id):
+    if current_user.role != 'admin':
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('index'))
+    role = request.form.get('role')
+    if role not in ('admin', 'analyst', 'viewer'):
+        flash('Invalid role.', 'danger')
+        return redirect(url_for('admin_users'))
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE users SET role = %s WHERE user_id = %s", (role, user_id))
+    mysql.connection.commit()
+    cur.close()
+    flash('User role updated.', 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_user(user_id):
+    if current_user.role != 'admin':
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('index'))
+    if user_id == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('admin_users'))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash('User deleted.', 'success')
+    return redirect(url_for('admin_users'))
+
+
+
 # ── Dashboard ────────────────────────────────────────────
 @app.route('/')
 @login_required
 def index():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM incidents")
+
+    severity   = request.args.get('severity', '')
+    status     = request.args.get('status', '')
+    category   = request.args.get('category_id', '')
+    search     = request.args.get('search', '')
+
+    query  = """
+        SELECT i.*, c.name AS category_name
+        FROM incidents i
+        LEFT JOIN categories c ON i.category_id = c.category_id
+        WHERE 1=1
+    """
+    params = []
+
+    if severity:
+        query += " AND i.severity = %s"
+        params.append(severity)
+    if status:
+        query += " AND i.status = %s"
+        params.append(status)
+    if category:
+        query += " AND i.category_id = %s"
+        params.append(category)
+    if search:
+        query += " AND (i.title LIKE %s OR i.description LIKE %s)"
+        params.append(f'%{search}%')
+        params.append(f'%{search}%')
+
+    query += " ORDER BY i.reported_at DESC"
+    cur.execute(query, params)
     incidents = cur.fetchall()
+
+    # Stats (unfiltered)
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='open'")
+    open_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='investigating'")
+    investigating_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE severity='critical'")
+    critical_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents")
+    total_count = cur.fetchone()['c']
+
+    cur.execute("SELECT * FROM categories ORDER BY name")
+    categories = cur.fetchall()
+
     cur.close()
-    return render_template('index.html', incidents=incidents)
+    return render_template('index.html',
+                           incidents=incidents,
+                           categories=categories,
+                           open_count=open_count,
+                           investigating_count=investigating_count,
+                           critical_count=critical_count,
+                           total_count=total_count,
+                           filters={'severity': severity, 'status': status,
+                                    'category_id': category, 'search': search})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -9,6 +9,61 @@
     {% endif %}
 </div>
 
+<form method="GET" style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+    <div class="form-group" style="margin: 0; flex: 1; min-width: 180px;">
+        <label>Search</label>
+        <input type="text" name="search" placeholder="Title or description…" value="{{ filters.search }}">
+    </div>
+    <div class="form-group" style="margin: 0;">
+        <label>Severity</label>
+        <select name="severity">
+            <option value="">All</option>
+            {% for s in ['low','medium','high','critical'] %}
+            <option value="{{ s }}" {{ 'selected' if filters.severity == s }}>{{ s.capitalize() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group" style="margin: 0;">
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+            {% for s in ['open','investigating','resolved','closed'] %}
+            <option value="{{ s }}" {{ 'selected' if filters.status == s }}>{{ s.capitalize() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group" style="margin: 0;">
+        <label>Category</label>
+        <select name="category_id">
+            <option value="">All</option>
+            {% for cat in categories %}
+            <option value="{{ cat.category_id }}" {{ 'selected' if filters.category_id == cat.category_id|string }}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('index') }}" class="btn btn-outline">Clear</a>
+</form>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number" style="color: var(--danger);">{{ open_count }}</div>
+        <div class="stat-label">Open</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color: var(--warning);">{{ investigating_count }}</div>
+        <div class="stat-label">Investigating</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color: #9b59b6;">{{ critical_count }}</div>
+        <div class="stat-label">Critical</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color: var(--accent-bright);">{{ total_count }}</div>
+        <div class="stat-label">Total Incidents</div>
+    </div>
+</div>
+
 <div class="table-wrapper">
     <table>
         <thead>

@@ -74,17 +74,42 @@
 
         {% if assets %}
             {% for asset in assets %}
-            <div style="padding:0.75rem; background:var(--navy); border-radius:8px; margin-bottom:0.75rem; border:1px solid var(--border);">
-                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.2rem;">
-                    {{ asset.asset_type or 'Unknown' }}
+            <div style="padding:0.75rem; background:var(--navy); border-radius:8px; margin-bottom:0.75rem; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.2rem;">
+                        {{ asset.asset_type or 'Unknown' }}
+                    </div>
+                    <div style="font-size:0.9rem; font-family:monospace; color:var(--accent-bright);">
+                        {{ asset.identifier }}
+                    </div>
                 </div>
-                <div style="font-size:0.9rem; font-family:monospace; color:var(--accent-bright);">
-                    {{ asset.identifier }}
-                </div>
+                {% if current_user.role in ('admin', 'analyst') %}
+                <form method="POST" action="{{ url_for('delete_asset', incident_id=incident.incident_id, asset_id=asset.asset_id) }}"
+                      onsubmit="return confirm('Remove this asset?');">
+                    <button type="submit" class="btn btn-danger" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Remove</button>
+                </form>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}
-            <p style="color:var(--text-muted); font-size:0.88rem;">No assets linked.</p>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1rem;">No assets linked.</p>
+        {% endif %}
+
+        {% if current_user.role in ('admin', 'analyst') %}
+        <div class="divider"></div>
+        <form method="POST" action="{{ url_for('add_asset', incident_id=incident.incident_id) }}">
+            <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.75rem; align-items:flex-end;">
+                <div class="form-group" style="margin:0;">
+                    <label>Type</label>
+                    <input type="text" name="asset_type" placeholder="Server, IP…">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label>Identifier</label>
+                    <input type="text" name="identifier" placeholder="192.168.1.1 or hostname" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-bottom:0;">Add</button>
+            </div>
+        </form>
         {% endif %}
     </div>
 </div>
@@ -120,6 +145,19 @@
     {% else %}
         <p style="color:var(--text-muted); font-size:0.88rem;">No comments yet.</p>
     {% endif %}
+
+    <div class="divider"></div>
+
+    <form method="POST" action="{{ url_for('add_comment', incident_id=incident.incident_id) }}">
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Add Comment</label>
+            <textarea name="content" rows="3" placeholder="Write your comment…" style="resize:vertical;"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </div>
+    </form>
+
 </div>
 
 <!-- Audit Log -->
