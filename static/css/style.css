@@ -16,6 +16,18 @@
     --border:      rgba(74, 144, 217, 0.15);
 }
 
+/* ── Matrix Rain Background ── */
+#matrix-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.55;
+}
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,7 +41,7 @@ body {
 
 /* ── Navbar ── */
 .navbar {
-    background: var(--navy-mid);
+    background: rgba(17, 34, 64, 0.88);
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
     height: 64px;
@@ -39,7 +51,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
 }
 
 .navbar-brand {
@@ -128,11 +140,12 @@ body {
 
 /* ── Cards ── */
 .card {
-    background: var(--navy-mid);
+    background: rgba(17, 34, 64, 0.82);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
     transition: border-color 0.2s;
+    backdrop-filter: blur(6px);
 }
 
 .card:hover { border-color: rgba(74, 144, 217, 0.35); }
@@ -175,12 +188,13 @@ body {
 
 /* ── Forms ── */
 .form-card {
-    background: var(--navy-mid);
+    background: rgba(17, 34, 64, 0.88);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 2.5rem;
     max-width: 480px;
     margin: 0 auto;
+    backdrop-filter: blur(8px);
 }
 
 .form-title {
@@ -237,10 +251,11 @@ body {
 
 /* ── Table ── */
 .table-wrapper {
-    background: var(--navy-mid);
+    background: rgba(17, 34, 64, 0.82);
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
+    backdrop-filter: blur(6px);
 }
 
 table {
@@ -249,7 +264,7 @@ table {
 }
 
 thead {
-    background: var(--navy-light);
+    background: rgba(29, 52, 97, 0.95);
 }
 
 thead th {
@@ -285,15 +300,15 @@ tbody td {
     letter-spacing: 0.4px;
 }
 
-.badge-open        { background: rgba(231,76,60,0.15);  color: #e74c3c; }
-.badge-investigating{ background: rgba(243,156,18,0.15); color: #f39c12; }
-.badge-resolved    { background: rgba(46,204,113,0.15); color: #2ecc71; }
-.badge-closed      { background: rgba(136,153,170,0.15);color: #8899aa; }
+.badge-open         { background: rgba(231,76,60,0.15);  color: #e74c3c; }
+.badge-investigating { background: rgba(243,156,18,0.15); color: #f39c12; }
+.badge-resolved     { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.badge-closed       { background: rgba(136,153,170,0.15);color: #8899aa; }
 
-.badge-low         { background: rgba(46,204,113,0.15); color: #2ecc71; }
-.badge-medium      { background: rgba(243,156,18,0.15); color: #f39c12; }
-.badge-high        { background: rgba(231,76,60,0.15);  color: #e74c3c; }
-.badge-critical    { background: rgba(155,89,182,0.15); color: #9b59b6; }
+.badge-low          { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.badge-medium       { background: rgba(243,156,18,0.15); color: #f39c12; }
+.badge-high         { background: rgba(231,76,60,0.15);  color: #e74c3c; }
+.badge-critical     { background: rgba(155,89,182,0.15); color: #9b59b6; }
 
 /* ── Flash Messages ── */
 .flash-messages { margin-bottom: 1.5rem; }
@@ -355,11 +370,12 @@ tbody td {
 }
 
 .stat-card {
-    background: var(--navy-mid);
+    background: rgba(17, 34, 64, 0.82);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
     text-align: center;
+    backdrop-filter: blur(6px);
 }
 
 .stat-number {

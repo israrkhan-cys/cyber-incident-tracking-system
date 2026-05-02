@@ -8,6 +8,9 @@
 </head>
 <body>
 
+<!-- Matrix Rain Canvas -->
+<canvas id="matrix-canvas"></canvas>
+
 {% if current_user.is_authenticated %}
 <nav class="navbar">
     <a href="{{ url_for('index') }}" class="navbar-brand">
@@ -44,6 +47,53 @@
 
     {% block content %}{% endblock %}
 </div>
+
+<!-- Matrix Rain Script -->
+<script>
+(function () {
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx    = canvas.getContext('2d');
+
+    const FONT_SIZE = 14;
+    const CHARS     = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+    const COLOR     = '#4a90d9';
+    const BRIGHT    = '#60a5fa';
+    const OPACITY   = 0.045;
+
+    let cols, drops;
+
+    function resize() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cols  = Math.floor(canvas.width / FONT_SIZE);
+        drops = Array(cols).fill(1);
+    }
+
+    function draw() {
+        ctx.fillStyle = `rgba(10, 22, 40, ${OPACITY})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `${FONT_SIZE}px monospace`;
+
+        for (let i = 0; i < drops.length; i++) {
+            const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+            const x    = i * FONT_SIZE;
+            const y    = drops[i] * FONT_SIZE;
+
+            ctx.fillStyle = (drops[i] * FONT_SIZE < canvas.height * 0.1) ? BRIGHT : COLOR;
+            ctx.fillText(char, x, y);
+
+            if (y > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    setInterval(draw, 45);
+})();
+</script>
 
 </body>
 </html>
