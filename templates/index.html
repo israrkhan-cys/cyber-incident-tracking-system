@@ -3,91 +3,153 @@
 
 {% block content %}
 <div class="page-header">
-    <h1 class="page-title">Incident <span>Dashboard</span></h1>
-    {% if current_user.role in ('admin', 'analyst') %}
-    <a href="{{ url_for('new_incident') }}" class="btn btn-primary">+ Report Incident</a>
-    {% endif %}
+    <h1 class="page-title">Security <span>Dashboard</span></h1>
+    <div style="font-size:0.85rem; color:var(--text-muted);">
+        Last updated: <span id="ts"></span>
+        <script>document.getElementById('ts').textContent = new Date().toLocaleString();</script>
+    </div>
 </div>
 
-<form method="GET" style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
-    <div class="form-group" style="margin: 0; flex: 1; min-width: 180px;">
-        <label>Search</label>
-        <input type="text" name="search" placeholder="Title or description…" value="{{ filters.search }}">
-    </div>
-    <div class="form-group" style="margin: 0;">
-        <label>Severity</label>
-        <select name="severity">
-            <option value="">All</option>
-            {% for s in ['low','medium','high','critical'] %}
-            <option value="{{ s }}" {{ 'selected' if filters.severity == s }}>{{ s.capitalize() }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="form-group" style="margin: 0;">
-        <label>Status</label>
-        <select name="status">
-            <option value="">All</option>
-            {% for s in ['open','investigating','resolved','closed'] %}
-            <option value="{{ s }}" {{ 'selected' if filters.status == s }}>{{ s.capitalize() }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="form-group" style="margin: 0;">
-        <label>Category</label>
-        <select name="category_id">
-            <option value="">All</option>
-            {% for cat in categories %}
-            <option value="{{ cat.category_id }}" {{ 'selected' if filters.category_id == cat.category_id|string }}>{{ cat.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <button type="submit" class="btn btn-primary">Filter</button>
-    <a href="{{ url_for('index') }}" class="btn btn-outline">Clear</a>
-</form>
-
-<div class="stats-grid">
-    <div class="stat-card">
+<!-- Stats Row -->
+<div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
+    <div class="stat-card" style="border-top: 3px solid var(--danger);">
         <div class="stat-number" style="color: var(--danger);">{{ open_count }}</div>
         <div class="stat-label">Open</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" style="border-top: 3px solid var(--warning);">
         <div class="stat-number" style="color: var(--warning);">{{ investigating_count }}</div>
         <div class="stat-label">Investigating</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" style="border-top: 3px solid #9b59b6;">
         <div class="stat-number" style="color: #9b59b6;">{{ critical_count }}</div>
         <div class="stat-label">Critical</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" style="border-top: 3px solid var(--accent-bright);">
         <div class="stat-number" style="color: var(--accent-bright);">{{ total_count }}</div>
-        <div class="stat-label">Total Incidents</div>
+        <div class="stat-label">Total</div>
     </div>
 </div>
 
-<div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Title</th>
-                <th>Severity</th>
-                <th>Status</th>
-                <th>Reported At</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for incident in incidents %}
-            <tr>
-                <td>{{ incident.incident_id }}</td>
-                <td>{{ incident.title }}</td>
-                <td><span class="badge badge-{{ incident.severity }}">{{ incident.severity }}</span></td>
-                <td><span class="badge badge-{{ incident.status }}">{{ incident.status }}</span></td>
-                <td>{{ incident.reported_at.strftime('%b %d, %Y') }}</td>
-                <td><a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">View</a></td>
-            </tr>
+<!-- Two-column layout: recent + breakdown -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+
+    <!-- Recent Incidents -->
+    <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem;">
+            <h3 style="font-family:'Syne',sans-serif; font-size:1.05rem; color:var(--accent-bright);">
+                Recent Incidents
+            </h3>
+            <a href="{{ url_for('incidents') }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; font-size:0.8rem;">
+                View All →
+            </a>
+        </div>
+
+        {% if recent_incidents %}
+            {% for incident in recent_incidents %}
+            <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+               style="display:block; text-decoration:none; color:inherit;">
+                <div style="display:flex; align-items:center; gap:1rem; padding:0.8rem;
+                            border-radius:8px; border:1px solid var(--border);
+                            margin-bottom:0.6rem; background:var(--navy);
+                            transition: border-color 0.2s;"
+                     onmouseover="this.style.borderColor='rgba(74,144,217,0.4)'"
+                     onmouseout="this.style.borderColor='var(--border)'">
+                    <!-- Severity indicator -->
+                    <div style="width:4px; height:40px; border-radius:4px; flex-shrink:0;
+                                background: {% if incident.severity == 'critical' %}#9b59b6{% elif incident.severity == 'high' %}var(--danger){% elif incident.severity == 'medium' %}var(--warning){% else %}var(--success){% endif %};">
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:0.9rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            {{ incident.title }}
+                        </div>
+                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.15rem;">
+                            {{ incident.reported_at.strftime('%b %d, %Y') }}
+                            {% if incident.category_name %} · {{ incident.category_name }}{% endif %}
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.3rem; flex-shrink:0;">
+                        <span class="badge badge-{{ incident.severity }}" style="font-size:0.7rem;">{{ incident.severity }}</span>
+                        <span class="badge badge-{{ incident.status }}" style="font-size:0.7rem;">{{ incident.status }}</span>
+                    </div>
+                </div>
+            </a>
             {% endfor %}
-        </tbody>
-    </table>
+        {% else %}
+            <p style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:2rem 0;">
+                No incidents reported yet.
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Right column -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+        <!-- By Severity -->
+        <div class="card">
+            <h3 style="font-family:'Syne',sans-serif; font-size:1.05rem; color:var(--accent-bright); margin-bottom:1.2rem;">
+                By Severity
+            </h3>
+            {% set severities = [
+                ('critical', '#9b59b6', severity_counts.critical),
+                ('high',     'var(--danger)', severity_counts.high),
+                ('medium',   'var(--warning)', severity_counts.medium),
+                ('low',      'var(--success)', severity_counts.low)
+            ] %}
+            {% for label, color, count in severities %}
+            <div style="margin-bottom:0.9rem;">
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.3rem;">
+                    <span style="text-transform:capitalize; color:var(--text-muted);">{{ label }}</span>
+                    <span style="font-weight:600; color:{{ color }};">{{ count }}</span>
+                </div>
+                <div style="height:6px; background:var(--navy); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; border-radius:4px; background:{{ color }};
+                                width: {% if total_count > 0 %}{{ ((count / total_count) * 100)|round|int }}%{% else %}0%{% endif %};
+                                transition: width 0.6s ease;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- By Status -->
+        <div class="card">
+            <h3 style="font-family:'Syne',sans-serif; font-size:1.05rem; color:var(--accent-bright); margin-bottom:1.2rem;">
+                By Status
+            </h3>
+            {% set statuses = [
+                ('open',          'var(--danger)',       status_counts.open),
+                ('investigating', 'var(--warning)',      status_counts.investigating),
+                ('resolved',      'var(--success)',      status_counts.resolved),
+                ('closed',        'var(--text-muted)',   status_counts.closed)
+            ] %}
+            {% for label, color, count in statuses %}
+            <div style="display:flex; align-items:center; justify-content:space-between;
+                        padding:0.5rem 0.75rem; border-radius:6px; margin-bottom:0.4rem;
+                        background:var(--navy); border:1px solid var(--border);">
+                <div style="display:flex; align-items:center; gap:0.6rem;">
+                    <div style="width:8px; height:8px; border-radius:50%; background:{{ color }};"></div>
+                    <span style="font-size:0.85rem; text-transform:capitalize;">{{ label }}</span>
+                </div>
+                <span style="font-size:0.85rem; font-weight:600; color:{{ color }};">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Actions -->
+        {% if current_user.role in ('admin', 'analyst') %}
+        <div class="card">
+            <h3 style="font-family:'Syne',sans-serif; font-size:1.05rem; color:var(--accent-bright); margin-bottom:1rem;">
+                Quick Actions
+            </h3>
+            <a href="{{ url_for('new_incident') }}" class="btn btn-primary" style="width:100%; justify-content:center; margin-bottom:0.6rem;">
+                + Report Incident
+            </a>
+            <a href="{{ url_for('incidents') }}" class="btn btn-outline" style="width:100%; justify-content:center;">
+                Browse All Incidents
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
 </div>
+
 {% endblock %}

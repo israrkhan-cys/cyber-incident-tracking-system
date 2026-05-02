@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Incidents{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">All <span>Incidents</span></h1>
+    {% if current_user.role in ('admin', 'analyst') %}
+    <a href="{{ url_for('new_incident') }}" class="btn btn-primary">+ Report Incident</a>
+    {% endif %}
+</div>
+
+<!-- Filters -->
+<form method="GET" style="margin-bottom: 1.5rem;">
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+        <div class="form-group" style="margin:0; flex:1; min-width:200px;">
+            <label>Search</label>
+            <input type="text" name="search" placeholder="Title or description…" value="{{ filters.search }}">
+        </div>
+        <div class="form-group" style="margin:0; min-width:130px;">
+            <label>Severity</label>
+            <select name="severity">
+                <option value="">All Severities</option>
+                {% for s in ['low','medium','high','critical'] %}
+                <option value="{{ s }}" {{ 'selected' if filters.severity == s }}>{{ s.capitalize() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin:0; min-width:130px;">
+            <label>Status</label>
+            <select name="status">
+                <option value="">All Statuses</option>
+                {% for s in ['open','investigating','resolved','closed'] %}
+                <option value="{{ s }}" {{ 'selected' if filters.status == s }}>{{ s.capitalize() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin:0; min-width:140px;">
+            <label>Category</label>
+            <select name="category_id">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.category_id }}" {{ 'selected' if filters.category_id == cat.category_id|string }}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{{ url_for('incidents') }}" class="btn btn-outline">Clear</a>
+    </div>
+</form>
+
+<!-- Result count -->
+<div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.75rem;">
+    Showing <strong style="color:var(--white);">{{ incidents|length }}</strong> incident{{ 's' if incidents|length != 1 }}
+    {% if filters.search or filters.severity or filters.status or filters.category_id %}
+        — <a href="{{ url_for('incidents') }}" style="color:var(--accent-bright); text-decoration:none;">clear filters</a>
+    {% endif %}
+</div>
+
+<!-- Table -->
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Reported At</th>
+                <th>Assigned To</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for incident in incidents %}
+            <tr>
+                <td style="color:var(--text-muted); font-size:0.82rem;">{{ incident.incident_id }}</td>
+                <td style="max-width:280px;">
+                    <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+                       style="color:var(--white); text-decoration:none; font-weight:500;"
+                       onmouseover="this.style.color='var(--accent-bright)'"
+                       onmouseout="this.style.color='var(--white)'">
+                        {{ incident.title }}
+                    </a>
+                </td>
+                <td style="color:var(--text-muted); font-size:0.85rem;">
+                    {{ incident.category_name or '—' }}
+                </td>
+                <td><span class="badge badge-{{ incident.severity }}">{{ incident.severity }}</span></td>
+                <td><span class="badge badge-{{ incident.status }}">{{ incident.status }}</span></td>
+                <td style="color:var(--text-muted); font-size:0.85rem; white-space:nowrap;">
+                    {{ incident.reported_at.strftime('%b %d, %Y') }}
+                </td>
+                <td style="color:var(--text-muted); font-size:0.85rem;">
+                    {{ incident.assignee_name or '—' }}
+                </td>
+                <td>
+                    <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+                       class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align:center; padding:3rem; color:var(--text-muted);">
+                    No incidents found.
+                    {% if current_user.role in ('admin', 'analyst') %}
+                    <a href="{{ url_for('new_incident') }}" style="color:var(--accent-bright);">Report one?</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

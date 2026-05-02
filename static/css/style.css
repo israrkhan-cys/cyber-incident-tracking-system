@@ -376,3 +376,8 @@ tbody td {
     letter-spacing: 0.5px;
     margin-top: 0.3rem;
 }
+
+.navbar-links a.nav-active {
+    color: var(--white);
+    background: var(--border);
+}

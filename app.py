@@ -31,6 +31,124 @@ def load_user(user_id):
 from routes.auth import auth
 app.register_blueprint(auth)
 
+
+# ── Dashboard ────────────────────────────────────────────
+@app.route('/')
+@login_required
+def index():
+    cur = mysql.connection.cursor()
+
+    # Summary counts
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='open'")
+    open_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='investigating'")
+    investigating_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='resolved'")
+    resolved_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='closed'")
+    closed_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE severity='critical'")
+    critical_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE severity='high'")
+    high_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE severity='medium'")
+    medium_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE severity='low'")
+    low_count = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM incidents")
+    total_count = cur.fetchone()['c']
+
+    # Recent incidents (last 5)
+    cur.execute("""
+        SELECT i.*, c.name AS category_name, u.username AS assignee_name
+        FROM incidents i
+        LEFT JOIN categories c ON i.category_id = c.category_id
+        LEFT JOIN users u ON i.assigned_to = u.user_id
+        ORDER BY i.reported_at DESC
+        LIMIT 5
+    """)
+    recent_incidents = cur.fetchall()
+
+    cur.close()
+
+    severity_counts = {
+        'critical': critical_count,
+        'high': high_count,
+        'medium': medium_count,
+        'low': low_count,
+    }
+    status_counts = {
+        'open': open_count,
+        'investigating': investigating_count,
+        'resolved': resolved_count,
+        'closed': closed_count,
+    }
+
+    return render_template('index.html',
+                           recent_incidents=recent_incidents,
+                           open_count=open_count,
+                           investigating_count=investigating_count,
+                           critical_count=critical_count,
+                           total_count=total_count,
+                           severity_counts=severity_counts,
+                           status_counts=status_counts)
+
+
+# ── Incidents list ───────────────────────────────────────
+@app.route('/incidents')
+@login_required
+def incidents():
+    cur = mysql.connection.cursor()
+
+    severity  = request.args.get('severity', '')
+    status    = request.args.get('status', '')
+    category  = request.args.get('category_id', '')
+    search    = request.args.get('search', '')
+
+    query = """
+        SELECT i.*,
+               c.name AS category_name,
+               a.username AS assignee_name
+        FROM incidents i
+        LEFT JOIN categories c ON i.category_id = c.category_id
+        LEFT JOIN users a ON i.assigned_to = a.user_id
+        WHERE 1=1
+    """
+    params = []
+
+    if severity:
+        query += " AND i.severity = %s"
+        params.append(severity)
+    if status:
+        query += " AND i.status = %s"
+        params.append(status)
+    if category:
+        query += " AND i.category_id = %s"
+        params.append(category)
+    if search:
+        query += " AND (i.title LIKE %s OR i.description LIKE %s)"
+        params.append(f'%{search}%')
+        params.append(f'%{search}%')
+
+    query += " ORDER BY i.reported_at DESC"
+    cur.execute(query, params)
+    all_incidents = cur.fetchall()
+
+    cur.execute("SELECT * FROM categories ORDER BY name")
+    categories = cur.fetchall()
+
+    cur.close()
+    return render_template('incidents.html',
+                           incidents=all_incidents,
+                           categories=categories,
+                           filters={
+                               'severity': severity,
+                               'status': status,
+                               'category_id': category,
+                               'search': search,
+                           })
+
+
 # ── View incident detail ─────────────────────────────────
 @app.route('/incident/<int:incident_id>')
 @login_required
@@ -38,7 +156,7 @@ def incident_detail(incident_id):
     cur = mysql.connection.cursor()
 
     cur.execute("""
-        SELECT i.*, 
+        SELECT i.*,
                c.name AS category_name,
                r.username AS reporter_name,
                a.username AS assignee_name
@@ -82,7 +200,8 @@ def incident_detail(incident_id):
                            comments=comments,
                            logs=logs)
 
-# assets
+
+# ── Assets ───────────────────────────────────────────────
 @app.route('/incident/<int:incident_id>/asset/add', methods=['POST'])
 @login_required
 def add_asset(incident_id):
@@ -124,7 +243,8 @@ def delete_asset(incident_id, asset_id):
     flash('Asset removed.', 'success')
     return redirect(url_for('incident_detail', incident_id=incident_id))
 
-# comments submission form
+
+# ── Comments ─────────────────────────────────────────────
 @app.route('/incident/<int:incident_id>/comment', methods=['POST'])
 @login_required
 def add_comment(incident_id):
@@ -143,6 +263,7 @@ def add_comment(incident_id):
 
     flash('Comment added.', 'success')
     return redirect(url_for('incident_detail', incident_id=incident_id))
+
 
 # ── Report new incident ──────────────────────────────────
 @app.route('/incident/new', methods=['GET', 'POST'])
@@ -181,12 +302,12 @@ def new_incident():
 
     cur.execute("SELECT * FROM categories")
     categories = cur.fetchall()
-
     cur.execute("SELECT user_id, username, role FROM users ORDER BY username")
     users = cur.fetchall()
-
     cur.close()
+
     return render_template('new_incident.html', categories=categories, users=users)
+
 
 # ── Edit incident ────────────────────────────────────────
 @app.route('/incident/<int:incident_id>/edit', methods=['GET', 'POST'])
@@ -246,15 +367,14 @@ def edit_incident(incident_id):
 
     cur.execute("SELECT * FROM categories")
     categories = cur.fetchall()
-
     cur.execute("SELECT user_id, username, role FROM users ORDER BY username")
     users = cur.fetchall()
-
     cur.close()
+
     return render_template('edit_incident.html', incident=incident, categories=categories, users=users)
 
-# users
 
+# ── Admin: Users ─────────────────────────────────────────
 @app.route('/admin/users')
 @login_required
 def admin_users():
@@ -302,68 +422,6 @@ def admin_delete_user(user_id):
     flash('User deleted.', 'success')
     return redirect(url_for('admin_users'))
 
-
-
-# ── Dashboard ────────────────────────────────────────────
-@app.route('/')
-@login_required
-def index():
-    cur = mysql.connection.cursor()
-
-    severity   = request.args.get('severity', '')
-    status     = request.args.get('status', '')
-    category   = request.args.get('category_id', '')
-    search     = request.args.get('search', '')
-
-    query  = """
-        SELECT i.*, c.name AS category_name
-        FROM incidents i
-        LEFT JOIN categories c ON i.category_id = c.category_id
-        WHERE 1=1
-    """
-    params = []
-
-    if severity:
-        query += " AND i.severity = %s"
-        params.append(severity)
-    if status:
-        query += " AND i.status = %s"
-        params.append(status)
-    if category:
-        query += " AND i.category_id = %s"
-        params.append(category)
-    if search:
-        query += " AND (i.title LIKE %s OR i.description LIKE %s)"
-        params.append(f'%{search}%')
-        params.append(f'%{search}%')
-
-    query += " ORDER BY i.reported_at DESC"
-    cur.execute(query, params)
-    incidents = cur.fetchall()
-
-    # Stats (unfiltered)
-    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='open'")
-    open_count = cur.fetchone()['c']
-    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE status='investigating'")
-    investigating_count = cur.fetchone()['c']
-    cur.execute("SELECT COUNT(*) AS c FROM incidents WHERE severity='critical'")
-    critical_count = cur.fetchone()['c']
-    cur.execute("SELECT COUNT(*) AS c FROM incidents")
-    total_count = cur.fetchone()['c']
-
-    cur.execute("SELECT * FROM categories ORDER BY name")
-    categories = cur.fetchall()
-
-    cur.close()
-    return render_template('index.html',
-                           incidents=incidents,
-                           categories=categories,
-                           open_count=open_count,
-                           investigating_count=investigating_count,
-                           critical_count=critical_count,
-                           total_count=total_count,
-                           filters={'severity': severity, 'status': status,
-                                    'category_id': category, 'search': search})
 
 if __name__ == '__main__':
     app.run(debug=True)

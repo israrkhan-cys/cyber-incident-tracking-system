@@ -15,10 +15,10 @@
     </a>
 
     <ul class="navbar-links">
-        <li><a href="{{ url_for('index') }}">Dashboard</a></li>
-        <li><a href="#">Incidents</a></li>
+        <li><a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="nav-active"{% endif %}>Dashboard</a></li>
+        <li><a href="{{ url_for('incidents') }}" {% if request.endpoint == 'incidents' %}class="nav-active"{% endif %}>Incidents</a></li>
         {% if current_user.role == 'admin' %}
-        <li><a href="{{ url_for('admin_users') }}">Admin</a></li>
+        <li><a href="{{ url_for('admin_users') }}" {% if request.endpoint == 'admin_users' %}class="nav-active"{% endif %}>Admin</a></li>
         {% endif %}
     </ul>
 
@@ -30,9 +30,8 @@
 </nav>
 {% endif %}
 
-<div class="{% if current_user.is_authenticated %}main-content{% else %}{% endif %}">
+<div class="{% if current_user.is_authenticated %}main-content{% endif %}">
 
-    <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="flash-messages">
