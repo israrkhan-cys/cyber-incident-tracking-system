@@ -5,7 +5,7 @@ A web-based cyber incident tracking system built with Flask, MySQL, and HTML/CSS
 ## Tech Stack
 - Python (Flask)
 - MariaDB / MySQL
-- HTML, CSS
+- HTML(jinja2), CSS
 - Chart.js
 
 ## Team Setup
