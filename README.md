@@ -35,37 +35,38 @@ track, investigate, and resolve cyber incidents with role-based access control.
 ## Team Setup
 
 ### 1. Clone the repo
-\```bash
+```bash
 git clone https://github.com/israrkhan-cys/cyber-incident-tracking-system.git
 cd cyber-incident-tracking-system
-\```
+```
 
 ### 2. Create virtual environment
-\```bash
+```bash
 python -m venv .venv
 source .venv/bin/activate
-\```
+```
 
 ### 3. Install dependencies
-\```bash
+```bash
 pip install -r requirements.txt --break-system-packages
-\```
+```
 
 ### 4. Setup config
-\```bash
+```bash
 cp config.example.py config.py
 # Open config.py and fill in your own DB credentials
-\```
+```
 
 ### 5. Setup database
-\```bash
+```bash
 mysql -u your_db_user -p < db/schema.sql
-\```
+```
 
 ### 6. Run the app
-\```bash
+```bash
 python app.py
-\```
+```
+
 Visit → http://127.0.0.1:5000
 
 ## Default Test Accounts
@@ -79,8 +80,6 @@ After running schema.sql, these accounts are available:
 | viewer1  | viewer@cyber.com   | viewer  |
 
 > ⚠️ Passwords in the DB are placeholder — register fresh accounts via /register
-
-\```
 
 ## Course
 Database Systems — FAST University Peshawar
