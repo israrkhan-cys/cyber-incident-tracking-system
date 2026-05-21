@@ -5,7 +5,7 @@
 
 <div class="page-header">
     <div>
-        <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+        <a href="{{ url_for('incidents.incident_detail', incident_id=incident.incident_id) }}"
            style="color:var(--text-muted); font-size:0.85rem; text-decoration:none;">
             ← Back to Incident
         </a>
@@ -89,7 +89,7 @@
             <div class="divider"></div>
 
             <div style="display:flex; gap:1rem; justify-content:flex-end;">
-                <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+                <a href="{{ url_for('incidents.incident_detail', incident_id=incident.incident_id) }}"
                    class="btn btn-outline">Cancel</a>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>

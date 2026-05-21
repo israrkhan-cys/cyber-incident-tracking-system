@@ -5,7 +5,7 @@
 <div class="page-header">
     <h1 class="page-title">All <span>Incidents</span></h1>
     {% if current_user.role in ('admin', 'analyst') %}
-    <a href="{{ url_for('new_incident') }}" class="btn btn-primary">+ Report Incident</a>
+    <a href="{{ url_for('incidents.new_incident') }}" class="btn btn-primary">+ Report Incident</a>
     {% endif %}
 </div>
 
@@ -46,7 +46,7 @@
             </select>
         </div>
         <button type="submit" class="btn btn-primary">Filter</button>
-        <a href="{{ url_for('incidents') }}" class="btn btn-outline">Clear</a>
+        <a href="{{ url_for('incidents.incidents') }}" class="btn btn-outline">Clear</a>
     </div>
 </form>
 
@@ -54,7 +54,7 @@
 <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.75rem;">
     Showing <strong style="color:var(--white);">{{ incidents|length }}</strong> incident{{ 's' if incidents|length != 1 }}
     {% if filters.search or filters.severity or filters.status or filters.category_id %}
-        — <a href="{{ url_for('incidents') }}" style="color:var(--accent-bright); text-decoration:none;">clear filters</a>
+        — <a href="{{ url_for('incidents.incidents') }}" style="color:var(--accent-bright); text-decoration:none;">clear filters</a>
     {% endif %}
 </div>
 
@@ -78,7 +78,7 @@
             <tr>
                 <td style="color:var(--text-muted); font-size:0.82rem;">{{ incident.incident_id }}</td>
                 <td style="max-width:280px;">
-                    <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+                    <a href="{{ url_for('incidents.incident_detail', incident_id=incident.incident_id) }}"
                        style="color:var(--white); text-decoration:none; font-weight:500;"
                        onmouseover="this.style.color='var(--accent-bright)'"
                        onmouseout="this.style.color='var(--white)'">
@@ -97,7 +97,7 @@
                     {{ incident.assignee_name or '—' }}
                 </td>
                 <td>
-                    <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+                    <a href="{{ url_for('incidents.incident_detail', incident_id=incident.incident_id) }}"
                        class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">
                         View
                     </a>
@@ -108,7 +108,7 @@
                 <td colspan="8" style="text-align:center; padding:3rem; color:var(--text-muted);">
                     No incidents found.
                     {% if current_user.role in ('admin', 'analyst') %}
-                    <a href="{{ url_for('new_incident') }}" style="color:var(--accent-bright);">Report one?</a>
+                    <a href="{{ url_for('incidents.new_incident') }}" style="color:var(--accent-bright);">Report one?</a>
                     {% endif %}
                 </td>
             </tr>

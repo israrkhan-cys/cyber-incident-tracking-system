@@ -39,14 +39,14 @@
             <h3 style="font-family:'Syne',sans-serif; font-size:1.05rem; color:var(--accent-bright);">
                 Recent Incidents
             </h3>
-            <a href="{{ url_for('incidents') }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; font-size:0.8rem;">
+            <a href="{{ url_for('incidents.incidents') }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; font-size:0.8rem;">
                 View All →
             </a>
         </div>
 
         {% if recent_incidents %}
             {% for incident in recent_incidents %}
-            <a href="{{ url_for('incident_detail', incident_id=incident.incident_id) }}"
+            <a href="{{ url_for('incidents.incident_detail', incident_id=incident.incident_id) }}"
                style="display:block; text-decoration:none; color:inherit;">
                 <div style="display:flex; align-items:center; gap:1rem; padding:0.8rem;
                             border-radius:8px; border:1px solid var(--border);
@@ -140,10 +140,10 @@
             <h3 style="font-family:'Syne',sans-serif; font-size:1.05rem; color:var(--accent-bright); margin-bottom:1rem;">
                 Quick Actions
             </h3>
-            <a href="{{ url_for('new_incident') }}" class="btn btn-primary" style="width:100%; justify-content:center; margin-bottom:0.6rem;">
+            <a href="{{ url_for('incidents.new_incident') }}" class="btn btn-primary" style="width:100%; justify-content:center; margin-bottom:0.6rem;">
                 + Report Incident
             </a>
-            <a href="{{ url_for('incidents') }}" class="btn btn-outline" style="width:100%; justify-content:center;">
+            <a href="{{ url_for('incidents.incidents') }}" class="btn btn-outline" style="width:100%; justify-content:center;">
                 Browse All Incidents
             </a>
         </div>
