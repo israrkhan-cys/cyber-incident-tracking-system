@@ -201,6 +201,26 @@ def incident_detail(incident_id):
                            logs=logs)
 
 
+@app.route('/incident/<int:incident_id>/delete', methods=['POST'])
+@login_required
+def delete_incident(incident_id):
+    if current_user.role != 'admin':
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('incident_detail', incident_id=incident_id))
+
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM incidents WHERE incident_id = %s", (incident_id,))
+    deleted = cur.rowcount
+    mysql.connection.commit()
+    cur.close()
+
+    if not deleted:
+        flash('Incident not found.', 'danger')
+    else:
+        flash('Incident deleted.', 'success')
+    return redirect(url_for('incidents'))
+
+
 # ── Assets ───────────────────────────────────────────────
 @app.route('/incident/<int:incident_id>/asset/add', methods=['POST'])
 @login_required

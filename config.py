@@ -1,4 +1,3 @@
-
 class Config:
     SECRET_KEY = 'faahh'
     
